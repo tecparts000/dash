@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tecparts · Dashboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:  #303030;
+  --s1:  #2a2a2a;
+  --s2:  #363636;
+  --s3:  #404040;
+  --bd:  #484848;
+  --bd2: #585858;
+  --tx:  #f7f7f7;
+  --tx2: #aaaaaa;
+  --tx3: #666666;
+  --ac:  #d2fa02;
+  --ac2: #edff8a;
+  --ac3: #a8d400;
+  --ac4: #7aab00;
+  --ac5: #4a7000;
+  --danger: #ff6060;
+  --r: 8px;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Neue Montreal','DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:14px;-webkit-font-smoothing:antialiased}
+
+/* ── AUTH ── */
+#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.auth-wrap{max-width:460px;width:100%}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:36px}
+.auth-logo-name{font-size:18px;font-weight:300;letter-spacing:-.01em}
+.auth-logo-name b{font-weight:600;color:var(--ac)}
+.auth-wrap h1{font-size:clamp(26px,5vw,36px);font-weight:300;letter-spacing:-.025em;line-height:1.1;margin-bottom:8px}
+.auth-wrap h1 em{font-style:normal;color:var(--ac)}
+.auth-wrap>p{color:var(--tx2);font-size:13px;line-height:1.6;margin-bottom:28px}
+.steps-list{border-top:1px solid var(--bd);margin-bottom:24px}
+.step-row{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid var(--bd);align-items:flex-start}
+.step-n{flex-shrink:0;width:20px;height:20px;border-radius:50%;border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--tx3);margin-top:1px}
+.step-b h3{font-size:13px;font-weight:500;margin-bottom:2px}
+.step-b p{font-size:12px;color:var(--tx2);line-height:1.5}
+.step-b a{color:var(--ac);text-decoration:none}
+.step-b a:hover{text-decoration:underline}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.fg label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)}
+.inp{padding:11px 14px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--s1);color:var(--tx);font-family:inherit;font-size:13px;outline:none;transition:border-color .15s;width:100%}
+.inp:focus{border-color:var(--ac)}
+.inp::placeholder{color:var(--tx3)}
+.hint{font-size:11px;color:var(--tx3)}
+.err{background:#2a0a0a;border:1px solid #5a1515;color:#ff9999;border-radius:var(--r);padding:10px 14px;font-size:12px;margin-bottom:10px;display:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:var(--r);cursor:pointer;font-family:inherit;font-weight:500;transition:opacity .15s,transform .1s}
+.btn:hover{opacity:.85}
+.btn:active{transform:scale(.98)}
+.btn-ac{background:var(--ac);color:#090909;padding:11px 18px;font-size:13px;font-weight:600}
+.btn-ac.w{width:100%}
+.btn-ghost{background:transparent;color:var(--tx2);border:1px solid var(--bd);padding:6px 12px;font-size:11px}
+.btn-ghost:hover{color:var(--tx);border-color:var(--bd2)}
+.btn-flat{background:var(--s3);color:var(--tx2);border:1px solid var(--bd);padding:6px 12px;font-size:11px}
+.btn-flat:hover{color:var(--tx)}
+.btn-sm{padding:5px 10px;font-size:11px}
+
+/* ── CONFIG OVERLAY ── */
+#cfg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.cfg-card{background:var(--s1);border:1px solid var(--bd);border-radius:12px;max-width:580px;width:100%;max-height:88vh;overflow-y:auto}
+.cfg-hd{padding:22px 24px 16px;border-bottom:1px solid var(--bd)}
+.cfg-hd h2{font-size:16px;font-weight:500;margin-bottom:4px}
+.cfg-hd p{font-size:12px;color:var(--tx2)}
+.cfg-body{padding:22px 24px;display:flex;flex-direction:column;gap:20px}
+.cfg-sec h3{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cfg-f{display:flex;flex-direction:column;gap:5px}
+.cfg-f label{font-size:11px;font-weight:500;color:var(--tx2)}
+.cfg-f select,.cfg-f input{padding:8px 10px;border:1px solid var(--bd2);border-radius:6px;background:var(--s2);color:var(--tx);font-family:inherit;font-size:12px;outline:none}
+.cfg-f select:focus,.cfg-f input:focus{border-color:var(--ac)}
+.cfg-ft{padding:16px 24px;border-top:1px solid var(--bd);display:flex;gap:10px;justify-content:flex-end}
+
+/* ── APP ── */
+#app{display:none;min-height:100vh}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;background:var(--s1);border-bottom:1px solid var(--bd);height:50px;display:flex;align-items:center;padding:0 20px;gap:12px}
+.tb-logo{display:flex;align-items:center;gap:8px}
+.tb-name{font-size:14px;font-weight:300;letter-spacing:-.01em}
+.tb-name b{font-weight:600;color:var(--ac)}
+.sep{width:1px;height:16px;background:var(--bd)}
+.tb-sheet{font-size:11px;color:var(--tx3);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp{flex:1}
+.tb-right{display:flex;align-items:center;gap:8px}
+#tb-refresh{font-size:10px;color:var(--tx3)}
+
+/* PERIOD BAR */
+.period-bar{background:var(--s1);border-bottom:1px solid var(--bd);padding:9px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.period-lbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-right:2px}
+.pbtn{padding:5px 12px;border-radius:20px;border:1px solid var(--bd);background:transparent;color:var(--tx2);font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s}
+.pbtn:hover{color:var(--tx);border-color:var(--bd2)}
+.pbtn.on{background:var(--ac);color:#090909;border-color:var(--ac);font-weight:600}
+.dt-row{display:flex;align-items:center;gap:6px}
+.dt-row span{font-size:11px;color:var(--tx3)}
+input[type=date]{padding:4px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--s2);color:var(--tx);font-family:inherit;font-size:11px;outline:none;cursor:pointer}
+input[type=date]:focus{border-color:var(--ac)}
+
+/* CONTENT */
+.content{padding:20px;max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.sec-lbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:10px}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:20px}
+.kpi-lbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:12px}
+.kpi-val{font-size:clamp(20px,2.5vw,28px);font-weight:300;letter-spacing:-.025em;color:var(--ac);font-variant-numeric:tabular-nums;margin-bottom:12px;line-height:1}
+.prog-bar{height:3px;background:var(--bd);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.prog-fill{height:100%;background:var(--ac);border-radius:2px;transition:width .4s;max-width:100%}
+.prog-fill.over{background:var(--danger)}
+.prog-txt{font-size:11px;color:var(--tx2)}
+.prog-txt b{color:var(--ac)}
+.prog-txt b.over{color:var(--danger)}
+.kpi-meta{font-size:11px;color:var(--tx3);margin-top:6px;display:flex;align-items:center;gap:6px}
+.edit-meta-btn{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:10px;opacity:.4;transition:opacity .15s}
+.edit-meta-btn:hover{opacity:1;color:var(--ac)}
+.meta-edit{display:none;align-items:center;gap:6px;margin-top:6px}
+.meta-edit.show{display:flex}
+.meta-edit input{width:120px;padding:4px 8px;border:1px solid var(--ac);border-radius:5px;background:var(--s2);color:var(--tx);font-size:12px;font-family:inherit;outline:none}
+
+/* ABC */
+.abc-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.abc-hd{padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px}
+.abc-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);flex:1}
+.tgl-grp{display:flex;border:1px solid var(--bd);border-radius:6px;overflow:hidden}
+.tgl{padding:5px 12px;background:transparent;border:none;color:var(--tx2);font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s}
+.tgl.on{background:var(--ac);color:#090909;font-weight:600}
+.abc-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+col.c-rnk{width:40px}
+col.c-nm{width:auto}
+col.c-val{width:140px}
+col.c-pct{width:220px}
+col.c-cls{width:70px}
+thead th{padding:8px 14px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);background:var(--s2);border-bottom:1px solid var(--bd);white-space:nowrap;overflow:hidden}
+th.r{text-align:right}
+tbody tr{border-bottom:1px solid var(--bd);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--s2)}
+td{padding:9px 14px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx2);font-variant-numeric:tabular-nums}
+td.rnk{color:var(--tx3);font-size:11px}
+td.nm{color:var(--tx)}
+td.num{text-align:right;color:var(--tx);font-weight:500}
+td.pctcol{}
+.pct-cell{display:flex;align-items:center;gap:7px}
+.pct-num{font-size:11px;min-width:38px;text-align:right}
+.pct-track{flex:1;height:2px;background:var(--bd);border-radius:1px}
+.pct-fg{height:100%;border-radius:1px}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;font-size:10px;font-weight:700}
+.ba{background:#202d00;color:var(--ac);border:1px solid #2e3f00}
+.bb{background:#192300;color:var(--ac3);border:1px solid #263500}
+.bc{background:#111c00;color:var(--ac4);border:1px solid #1b2b00}
+/* footer grid: exact same col widths as table (no outer padding — cells carry their own) */
+.abc-ft{border-top:1px solid var(--bd);display:grid;grid-template-columns:40px 1fr 140px 220px 70px;align-items:center;gap:0;background:var(--s2);min-height:38px}
+.abc-ft-left{display:flex;align-items:center;gap:8px;padding:9px 14px;grid-column:1/3}
+.abc-ft-total{font-size:11px;font-weight:600;color:var(--tx2);text-align:right;padding-right:14px;grid-column:3}
+.abc-ft-spacer{display:none}
+.abc-ft-btns{display:flex;align-items:center;gap:8px;justify-content:flex-end;padding:9px 14px 9px 0;grid-column:4/6}
+.pg-info{font-size:11px;color:var(--tx3);flex:1}
+
+/* BOTTOM */
+.bottom-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+#cf-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--s1);border:1px solid var(--ac);border-radius:var(--r);font-size:12px;color:var(--tx2);margin-bottom:4px}
+#cf-bar strong{color:var(--ac);font-weight:600}
+#cf-bar .cf-clear{margin-left:auto;cursor:pointer;background:none;border:1px solid var(--bd2);color:var(--tx3);border-radius:5px;padding:3px 10px;font-size:11px;font-family:inherit;transition:border-color .15s,color .15s}
+#cf-bar .cf-clear:hover{border-color:var(--ac);color:var(--ac)}
+tbody tr.cf-active{background:color-mix(in srgb,var(--ac) 8%,transparent)!important}
+tbody tr.nm-click{cursor:pointer}
+tbody tr.nm-click:hover td.nm{color:var(--ac);text-decoration:underline}
+.metric{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:18px 20px}
+.metric-lbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:10px}
+.metric-val{font-size:22px;font-weight:300;letter-spacing:-.02em;color:var(--tx);font-variant-numeric:tabular-nums;line-height:1;margin-bottom:4px}
+.metric-sub{font-size:11px;color:var(--tx2)}
+.metric-sub.up{color:var(--ac3)}
+.metric-sub.dn{color:var(--danger)}
+
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:14px}
+.spinner{width:24px;height:24px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{font-size:11px;color:var(--tx3);letter-spacing:.05em}
+
+@media(max-width:640px){
+  .kpi-row{grid-template-columns:1fr}
+  .bottom-grid{grid-template-columns:1fr}
+  .period-bar{gap:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth">
+<div class="auth-wrap">
+  <div class="auth-logo">
+    <svg width="30" height="34" viewBox="0 0 60 68" fill="none">
+      <path d="M30 3L55 17.5V50.5L30 65L5 50.5V17.5Z" stroke="#d2fa02" stroke-width="5" stroke-linejoin="round" fill="none"/>
+      <path d="M18 24H42V30H33V46H27V30H18Z" fill="#d2fa02"/>
+    </svg>
+    <span class="auth-logo-name">tec<b>parts</b></span>
+  </div>
+  <h1>Conectar<br><em>planilha.</em></h1>
+  <p>Configure uma vez e os dados carregam automaticamente.</p>
+  <div class="steps-list">
+    <div class="step-row"><div class="step-n">1</div><div class="step-b"><h3>Crie credenciais OAuth no Google Cloud</h3><p><a href="https://console.cloud.google.com/apis/credentials" target="_blank">Credenciais → Criar → OAuth 2.0 Client ID</a> (tipo: Aplicativo da Web). Adicione <code>http://localhost:8080</code> em origens e <code>http://localhost:8080/sheets-dashboard.html</code> em redirecionamentos. Ative a <a href="https://console.cloud.google.com/apis/library/sheets.googleapis.com" target="_blank">Sheets API</a>.</p></div></div>
+    <div class="step-row"><div class="step-n">2</div><div class="step-b"><h3>Adicione seu e-mail como usuário de teste</h3><p><a href="https://console.cloud.google.com/auth/audience" target="_blank">Google Auth Platform → Público-alvo → Add users</a>.</p></div></div>
+    <div class="step-row"><div class="step-n">3</div><div class="step-b"><h3>Cole o Client ID e autorize</h3><p>Após o login, o dashboard detecta e compila os dados automaticamente.</p></div></div>
+  </div>
+  <div id="auth-err" class="err"></div>
+  <div class="fg"><label>OAuth Client ID</label><input class="inp" id="cid" type="text" placeholder="xxxx.apps.googleusercontent.com" autocomplete="off"><span class="hint">Salvo localmente no navegador.</span></div>
+  <button class="btn btn-ac w" onclick="startOAuth()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Entrar com Google
+  </button>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-logo">
+      <svg width="22" height="25" viewBox="0 0 60 68" fill="none">
+        <path d="M30 3L55 17.5V50.5L30 65L5 50.5V17.5Z" stroke="#d2fa02" stroke-width="5" stroke-linejoin="round" fill="none"/>
+        <path d="M18 24H42V30H33V46H27V30H18Z" fill="#d2fa02"/>
+      </svg>
+      <span class="tb-name">tec<b>parts</b></span>
+    </div>
+    <div class="sep"></div>
+    <span class="tb-sheet" id="tb-sheet">—</span>
+    <div class="sp"></div>
+    <div class="tb-right">
+      <span id="tb-refresh"></span>
+      <button class="btn btn-flat btn-sm" onclick="reload()">↻ Atualizar</button>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <!-- PERIOD BAR -->
+  <div class="period-bar">
+    <span class="period-lbl">Período</span>
+    <button class="pbtn" id="pb-mes" onclick="setPeriod('mes')">Este mês</button>
+    <button class="pbtn" id="pb-ant" onclick="setPeriod('ant')">Mês anterior</button>
+    <button class="pbtn" id="pb-sem" onclick="setPeriod('sem')">Esta semana</button>
+    <button class="pbtn" id="pb-hj"  onclick="setPeriod('hj')">Hoje</button>
+    <div class="sep"></div>
+    <div class="dt-row">
+      <span>De</span>
+      <input type="date" id="dt-de"  onchange="setPeriod('custom')">
+      <span>até</span>
+      <input type="date" id="dt-ate" onchange="setPeriod('custom')">
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div id="loading" class="loading"><div class="spinner"></div><p>Carregando dados…</p></div>
+
+    <div id="dash" style="display:none">
+
+      <!-- CROSS FILTER BAR -->
+      <div id="cf-bar" style="display:none"></div>
+
+      <!-- KPI -->
+      <div class="kpi-row">
+        <div class="kpi" id="kpi-mes">
+          <div class="kpi-lbl">Faturamento do Mês</div>
+          <div class="kpi-val" id="kv-mes">—</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-mes" style="width:0%"></div></div>
+          <div class="prog-txt" id="pt-mes">—</div>
+          <div class="kpi-meta">
+            Meta: <span id="meta-mes-val">—</span>
+            <button class="edit-meta-btn" onclick="toggleMetaEdit('mes')">✎</button>
+          </div>
+          <div class="meta-edit" id="me-mes">
+            <input type="number" id="mi-mes" placeholder="200000">
+            <button class="btn btn-ac btn-sm" onclick="saveMetaInline('mes')">OK</button>
+          </div>
+        </div>
+        <div class="kpi" id="kpi-dia">
+          <div class="kpi-lbl">Faturamento de Hoje</div>
+          <div class="kpi-val" id="kv-dia">—</div>
+          <div class="prog-bar"><div class="prog-fill" id="pf-dia" style="width:0%"></div></div>
+          <div class="prog-txt" id="pt-dia">—</div>
+          <div class="kpi-meta">
+            Meta: <span id="meta-dia-val">—</span>
+            <button class="edit-meta-btn" onclick="toggleMetaEdit('dia')">✎</button>
+          </div>
+          <div class="meta-edit" id="me-dia">
+            <input type="number" id="mi-dia" placeholder="10000">
+            <button class="btn btn-ac btn-sm" onclick="saveMetaInline('dia')">OK</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABC PRODUTOS -->
+      <div class="abc-card" style="margin-top:20px">
+        <div class="abc-hd">
+          <span class="abc-title" id="abc-p-title">—</span>
+          <div class="tgl-grp">
+            <button class="tgl on" id="tgl-p-fat" onclick="setAbcMode('p','fat')">Faturamento</button>
+            <button class="tgl"   id="tgl-p-qtd" onclick="setAbcMode('p','qtd')">Quantidade</button>
+          </div>
+        </div>
+        <div class="abc-wrap">
+          <table>
+            <colgroup><col class="c-rnk"><col class="c-nm"><col class="c-val"><col class="c-pct"><col class="c-cls"></colgroup>
+            <thead><tr><th>#</th><th>Produto</th><th class="r">Faturamento</th><th>% Total</th><th>Classe</th></tr></thead>
+            <tbody id="abc-p-body"></tbody>
+          </table>
+        </div>
+        <div class="abc-ft">
+          <div class="abc-ft-left"><span class="pg-info" id="abc-p-info"></span></div>
+          <span class="abc-ft-total" id="abc-p-total"></span>
+          <span class="abc-ft-spacer"></span>
+          <div class="abc-ft-btns">
+            <button class="btn btn-ghost btn-sm" id="abc-p-prev" onclick="abcPage('p',-1)">← Anterior</button>
+            <button class="btn btn-ghost btn-sm" id="abc-p-next" onclick="abcPage('p',1)">Próxima →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABC CLIENTES -->
+      <div class="abc-card" style="margin-top:20px">
+        <div class="abc-hd">
+          <span class="abc-title" id="abc-c-title">—</span>
+          <div class="tgl-grp">
+            <button class="tgl on" id="tgl-c-fat" onclick="setAbcMode('c','fat')">Faturamento</button>
+            <button class="tgl"   id="tgl-c-qtd" onclick="setAbcMode('c','qtd')">Quantidade</button>
+          </div>
+        </div>
+        <div class="abc-wrap">
+          <table>
+            <colgroup><col class="c-rnk"><col class="c-nm"><col class="c-val"><col class="c-pct"><col class="c-cls"></colgroup>
+            <thead><tr><th>#</th><th>Cliente</th><th class="r">Faturamento</th><th>% Total</th><th>Classe</th></tr></thead>
+            <tbody id="abc-c-body"></tbody>
+          </table>
+        </div>
+        <div class="abc-ft">
+          <div class="abc-ft-left"><span class="pg-info" id="abc-c-info"></span></div>
+          <span class="abc-ft-total" id="abc-c-total"></span>
+          <span class="abc-ft-spacer"></span>
+          <div class="abc-ft-btns">
+            <button class="btn btn-ghost btn-sm" id="abc-c-prev" onclick="abcPage('c',-1)">← Anterior</button>
+            <button class="btn btn-ghost btn-sm" id="abc-c-next" onclick="abcPage('c',1)">Próxima →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM -->
+      <div class="bottom-grid" style="margin-top:20px">
+        <div class="metric">
+          <div class="metric-lbl">Total Frete</div>
+          <div class="metric-val" id="m-frete">—</div>
+          <div class="metric-sub" id="m-frete-pct">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-lbl">Dólar hoje</div>
+          <div class="metric-val" id="m-dolar">—</div>
+          <div class="metric-sub" id="m-dolar-var">Carregando…</div>
+        </div>
+        <div class="metric">
+          <div class="metric-lbl">Total a Receber</div>
+          <div class="metric-val" id="m-rec">—</div>
+          <div class="metric-sub" id="m-rec-sub">—</div>
+        </div>
+      </div>
+
+    </div><!-- /dash -->
+  </div><!-- /content -->
+</div><!-- /app -->
+
+
+<script>
+// ═══════════════════════════════════════════════
+// CONFIG + STATE
+// ═══════════════════════════════════════════════
+const SID   = '1RwS-tCXOlx0VuFm1GTwgSXL57BfUnBl1-il4ybojBzU';
+const SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+const ABC_PAGE = 10;
+
+let RAW = { headers: [], rows: [] };
+let ALL_SHEETS = []; // [{sheetId, title}]
+let CFG = loadCfg();
+let PERIOD = { from: null, to: null, preset: 'mes' };
+let ABCState = { p: { page: 0, mode: 'fat', data: [] }, c: { page: 0, mode: 'fat', data: [] } };
+let CROSS_FILTER = { type: null, value: null }; // type: 'prod'|'cli', value: string
+
+function loadCfg() {
+  try { return JSON.parse(localStorage.getItem('tp_cfg') || 'null') || {}; } catch { return {}; }
+}
+function saveCfgStore(o) { try { localStorage.setItem('tp_cfg', JSON.stringify(o)); } catch {} }
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+function getCID() { try { return localStorage.getItem('tp_cid') || ''; } catch { return ''; } }
+function saveCID(v) { try { localStorage.setItem('tp_cid', v); } catch {} }
+function getTok() {
+  try { const r = JSON.parse(localStorage.getItem('tp_tok') || 'null'); return r && Date.now() < r.exp ? r.t : null; } catch { return null; }
+}
+function saveTok(t, exp) { try { localStorage.setItem('tp_tok', JSON.stringify({ t, exp: Date.now() + (exp - 60) * 1000 })); } catch {} }
+function logout() { try { localStorage.removeItem('tp_tok'); } catch {} location.reload(); }
+
+function startOAuth() {
+  const id = document.getElementById('cid').value.trim();
+  if (!id) { showErr('Informe o Client ID.'); return; }
+  if (!id.includes('.apps.googleusercontent.com')) { showErr('Client ID inválido.'); return; }
+  saveCID(id);
+  const p = new URLSearchParams({ client_id: id, redirect_uri: location.origin + location.pathname, response_type: 'token', scope: SCOPE, prompt: 'select_account' });
+  location.href = `https://accounts.google.com/o/oauth2/v2/auth?${p}`;
+}
+function showErr(m) { const e = document.getElementById('auth-err'); e.textContent = m; e.style.display = 'block'; }
+function checkCB() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const t = p.get('access_token');
+  if (!t) return null;
+  saveTok(t, parseInt(p.get('expires_in') || '3600'));
+  history.replaceState(null, '', location.pathname);
+  return t;
+}
+
+// ═══════════════════════════════════════════════
+// SHEETS API
+// ═══════════════════════════════════════════════
+async function apiFetch(url) {
+  const tok = getTok();
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${tok}` } });
+  if (!r.ok) throw r;
+  return r.json();
+}
+
+
+async function fetchAllSheets() {
+  const meta = await apiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${SID}?fields=sheets(properties(sheetId,title))`);
+  ALL_SHEETS = meta.sheets.map(s => ({ sheetId: s.properties.sheetId, title: s.properties.title }));
+
+  const findTab = (name) => ALL_SHEETS.find(s => s.title.trim().toLowerCase() === name.toLowerCase());
+
+  // ── Dados: sempre da aba "Geral" ──────────────────────────────
+  const geralTab = findTab('geral');
+  if (!geralTab) throw new Error('Aba "Geral" não encontrada na planilha.');
+  const geralData = await apiFetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(geralTab.title)}`
+  );
+  document.getElementById('tb-sheet').textContent = geralTab.title;
+
+  // ── Metas: da aba "DADO" (ou "DADOS") ───────────────────────
+  const dadoTab = findTab('dado') || findTab('dados') || findTab('data');
+  if (dadoTab) {
+    try {
+      const dadoData = await apiFetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(dadoTab.title)}`
+      );
+      extractMetasFromDado(dadoData.values || []);
+    } catch {}
+  }
+
+  return geralData.values || [];
+}
+
+// Aba DADO: col N (idx 13) = mês, col O (idx 14) = meta mensal, col P (idx 15) = dias úteis
+// Meta diária = meta mensal / dias úteis
+const MESES_PT = ['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+function normStr(s) { return String(s ?? '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+
+function extractMetasFromDado(values) {
+  const now = new Date();
+  const mesAtual = MESES_PT[now.getMonth()]; // e.g. "novembro"
+  const anoAtual = now.getFullYear();
+
+  for (const row of values) {
+    const mesCell = normStr(row[13]); // col N
+    if (!mesCell) continue;
+    // Match current month name (also accept "Nov/2026" format)
+    const matchMes = mesCell.includes(mesAtual) || mesCell.startsWith(mesAtual.slice(0, 3));
+    // Also check if it contains the current year (optional)
+    const matchAno = !String(row[13]).includes('/') || String(row[13]).includes(String(anoAtual));
+    if (matchMes && matchAno) {
+      const metaMes   = parseNum(row[14]); // col O
+      const diasUteis = parseNum(row[15]); // col P
+      if (!isNaN(metaMes) && metaMes > 0) {
+        CFG.metaMes = metaMes;
+        if (!isNaN(diasUteis) && diasUteis > 0) CFG.metaDia = Math.round(metaMes / diasUteis * 100) / 100;
+      }
+      break;
+    }
+  }
+  saveCfgStore(CFG);
+}
+
+// ═══════════════════════════════════════════════
+// DATA PROCESSING
+// ═══════════════════════════════════════════════
+function parseNum(v) { return parseFloat(String(v ?? '').replace(/[R$\s.]/g,'').replace(',','.')); }
+function parseDate(v) {
+  if (!v) return null;
+  const s = String(v).trim();
+  let m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m) return new Date(+m[3], +m[2]-1, +m[1]);
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+  m = s.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if (m) return new Date(2000 + +m[3], +m[2]-1, +m[1]);
+  const n = parseFloat(s);
+  if (!isNaN(n) && n > 1000) return new Date((n - 25569) * 86400000);
+  return null;
+}
+
+function processRaw(values) {
+  if (!values || values.length < 2) return false;
+  RAW.headers = values[0].map(h => String(h ?? '').trim());
+  RAW.rows = values.slice(1).filter(r => r?.some(c => c != null && c !== '')).map(r => RAW.headers.map((_,i) => String(r[i] ?? '').trim()));
+  return true;
+}
+
+// Fixed column mapping — Geral sheet layout
+// A=Data  E=Faturamento  F=Produto  G=Quantidade  M=Cliente  I=Frete  N=Status pgto
+function applyFixedCols() {
+  CFG = {
+    metaMes:   CFG.metaMes  || 0,
+    metaDia:   CFG.metaDia  || 0,
+    colData:   'A',
+    colFat:    'E',
+    colProd:   'C',
+    colQtd:    'D',
+    colCli:    'J',
+    colFrete:  'F',
+    colStatus: 'N',   // "STATUS PGTO" — used for A Receber filter
+  };
+}
+
+// Accept header name, column letter (A/B/E...) or 0-based index string
+function getCI(col) {
+  if (!col) return -1;
+  // Single or double letter like "A", "E", "AA"
+  if (/^[A-Za-z]{1,2}$/.test(col.trim())) {
+    const s = col.trim().toUpperCase();
+    let idx = 0;
+    for (let i = 0; i < s.length; i++) idx = idx * 26 + (s.charCodeAt(i) - 64);
+    return idx - 1; // 0-based
+  }
+  // Numeric index string
+  const n = parseInt(col);
+  if (!isNaN(n)) return n;
+  // Header name
+  return RAW.headers.findIndex(h => h.trim().toLowerCase() === col.trim().toLowerCase());
+}
+
+// Return the column letter for a 0-based index
+function colLetter(idx) {
+  if (idx < 0) return '';
+  let s = '', n = idx + 1;
+  while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+}
+
+// Describe what was detected (for settings display)
+function colDesc(colVal) {
+  const ci = getCI(colVal);
+  if (ci < 0) return colVal || '—';
+  const hdr = RAW.headers[ci] || '';
+  return `${colLetter(ci)} · ${hdr}`;
+}
+
+function getFiltered() {
+  if (!CFG.colData) return RAW.rows;
+  const ci = getCI(CFG.colData); if (ci < 0) return RAW.rows;
+  return RAW.rows.filter(r => { const d = parseDate(r[ci]); return d && d >= PERIOD.from && d <= PERIOD.to; });
+}
+function applyCrossFilter(rows) {
+  if (!CROSS_FILTER.value) return rows;
+  const col = CROSS_FILTER.type === 'prod' ? CFG.colProd : CFG.colCli;
+  const ci = getCI(col); if (ci < 0) return rows;
+  return rows.filter(r => String(r[ci] ?? '').trim() === CROSS_FILTER.value);
+}
+function getCrossFiltered() { return applyCrossFilter(getFiltered()); }
+function getToday() {
+  if (!CFG.colData) return [];
+  const ci = getCI(CFG.colData); if (ci < 0) return [];
+  const t = new Date(); t.setHours(0,0,0,0);
+  const tn = new Date(t); tn.setDate(tn.getDate()+1);
+  const rows = RAW.rows.filter(r => { const d = parseDate(r[ci]); return d && d >= t && d < tn; });
+  return applyCrossFilter(rows);
+}
+function setCrossFilter(type, value) {
+  if (CROSS_FILTER.type === type && CROSS_FILTER.value === value) {
+    CROSS_FILTER = { type: null, value: null };
+  } else {
+    CROSS_FILTER = { type, value };
+  }
+  ABCState.p.page = 0; ABCState.c.page = 0;
+  updateCFBar();
+  renderAll();
+}
+function updateCFBar() {
+  const bar = document.getElementById('cf-bar');
+  if (!CROSS_FILTER.value) { bar.style.display = 'none'; return; }
+  const lbl = CROSS_FILTER.type === 'prod' ? 'Produto' : 'Cliente';
+  bar.style.display = 'flex';
+  bar.innerHTML = `<span>Filtrando por ${lbl}:</span><strong>${CROSS_FILTER.value}</strong><button class="cf-clear" onclick="setCrossFilter(null,null)">✕ Limpar filtro</button>`;
+}
+function sumCol(rows, col) {
+  const ci = getCI(col); if (ci < 0) return 0;
+  return rows.reduce((s,r) => { const v = parseNum(r[ci]); return s + (isNaN(v) ? 0 : v); }, 0);
+}
+
+// ═══════════════════════════════════════════════
+// PERIOD
+// ═══════════════════════════════════════════════
+function setPeriod(p) {
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+  if (p === 'mes')    { PERIOD.from = new Date(y,m,1); PERIOD.to = new Date(y,m+1,0,23,59,59); }
+  else if (p==='ant') { PERIOD.from = new Date(y,m-1,1); PERIOD.to = new Date(y,m,0,23,59,59); }
+  else if (p==='sem') { const wd=now.getDay(); PERIOD.from=new Date(y,m,d-wd); PERIOD.to=new Date(y,m,d,23,59,59); }
+  else if (p==='hj')  { PERIOD.from=new Date(y,m,d); PERIOD.to=new Date(y,m,d,23,59,59); }
+  else if (p==='custom') {
+    const de = document.getElementById('dt-de').value, ate = document.getElementById('dt-ate').value;
+    if (de) { const [dy,dm,dd]=de.split('-'); PERIOD.from=new Date(+dy,+dm-1,+dd); }
+    if (ate) { const [ay,am,ad]=ate.split('-'); PERIOD.to=new Date(+ay,+am-1,+ad,23,59,59); }
+  }
+  PERIOD.preset = p;
+  ['mes','ant','sem','hj'].forEach(x => document.getElementById('pb-'+x)?.classList.toggle('on', x===p));
+  if (p !== 'custom') syncDateInputs();
+  if (document.getElementById('dash').style.display !== 'none') renderAll();
+}
+function syncDateInputs() {
+  if (!PERIOD.from || !PERIOD.to) return;
+  const fmt = d => d.toISOString().slice(0,10);
+  document.getElementById('dt-de').value  = fmt(PERIOD.from);
+  document.getElementById('dt-ate').value = fmt(PERIOD.to);
+}
+function initPeriod() { setPeriod('mes'); }
+
+// After data loads, if current period has no rows, jump to most recent month with data
+function autoAdjustPeriod() {
+  if (!CFG.colData) return;
+  const ci = getCI(CFG.colData); if (ci < 0) return;
+  // Check if current period has any rows
+  if (getFiltered().length > 0) return;
+  // Find most recent date in dataset
+  let maxDate = null;
+  RAW.rows.forEach(r => { const d = parseDate(r[ci]); if (d && (!maxDate || d > maxDate)) maxDate = d; });
+  if (!maxDate) return;
+  // Set period to that month
+  const y = maxDate.getFullYear(), m = maxDate.getMonth();
+  PERIOD.from = new Date(y, m, 1);
+  PERIOD.to   = new Date(y, m+1, 0, 23, 59, 59);
+  PERIOD.preset = 'custom';
+  ['mes','ant','sem','hj'].forEach(x => document.getElementById('pb-'+x)?.classList.remove('on'));
+  syncDateInputs();
+}
+
+// ═══════════════════════════════════════════════
+// CONFIG OVERLAY
+// ═══════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════
+// KPI
+// ═══════════════════════════════════════════════
+const BRL = new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL', minimumFractionDigits:2 });
+const NUM = new Intl.NumberFormat('pt-BR', { maximumFractionDigits:0 });
+const P1  = new Intl.NumberFormat('pt-BR', { style:'percent', minimumFractionDigits:1, maximumFractionDigits:1 });
+
+function renderKPIs() {
+  const rows = getCrossFiltered(), today = getToday();
+  const fatMes = CFG.colFat ? sumCol(rows, CFG.colFat) : 0;
+  const fatDia = CFG.colFat ? sumCol(today, CFG.colFat) : 0;
+  const metaMes = CFG.metaMes || 0, metaDia = CFG.metaDia || 0;
+
+  const setKPI = (valId, progId, txtId, metaId, val, meta) => {
+    document.getElementById(valId).textContent = BRL.format(val);
+    const pct = meta > 0 ? val / meta : 0;
+    const pBar = document.getElementById(progId);
+    pBar.style.width = Math.min(pct*100, 100) + '%';
+    pBar.className = 'prog-fill' + (pct > 1 ? ' over' : '');
+    const pTxt = document.getElementById(txtId);
+    const pctStr = P1.format(pct);
+    pTxt.innerHTML = meta > 0
+      ? `<b class="${pct>1?'over':''}">${pctStr}</b> da meta atingida`
+      : `Meta não definida — <button class="edit-meta-btn" style="font-size:11px;color:var(--ac)" onclick="toggleMetaEdit('${metaId}')">definir agora</button>`;
+    document.getElementById('meta-'+metaId+'-val').textContent = meta > 0 ? BRL.format(meta) : '—';
+  };
+  setKPI('kv-mes','pf-mes','pt-mes','mes', fatMes, metaMes);
+  setKPI('kv-dia','pf-dia','pt-dia','dia', fatDia, metaDia);
+}
+
+function toggleMetaEdit(type) {
+  document.getElementById('me-'+type).classList.toggle('show');
+  document.getElementById('mi-'+type).value = type === 'mes' ? (CFG.metaMes || '') : (CFG.metaDia || '');
+}
+function saveMetaInline(type) {
+  const val = parseFloat(document.getElementById('mi-'+type).value) || 0;
+  if (type === 'mes') CFG.metaMes = val; else CFG.metaDia = val;
+  saveCfgStore(CFG);
+  document.getElementById('me-'+type).classList.remove('show');
+  renderKPIs();
+}
+
+// ═══════════════════════════════════════════════
+// ABC CURVE
+// ═══════════════════════════════════════════════
+function calcABC(rows, colKey, colVal) {
+  const ci = getCI(colKey), cv = getCI(colVal);
+  if (ci < 0 || cv < 0) return [];
+  const agg = {};
+  rows.forEach(r => { const k = r[ci]||'—'; const v = parseNum(r[cv]); if (!isNaN(v) && v > 0) agg[k] = (agg[k]||0) + v; });
+  const sorted = Object.entries(agg).sort((a,b) => b[1]-a[1]);
+  const total = sorted.reduce((s,[,v]) => s+v, 0);
+  let cum = 0;
+  return sorted.map(([name,val],i) => {
+    cum += val;
+    const pct = total > 0 ? val/total*100 : 0;
+    const cPct = total > 0 ? cum/total*100 : 0;
+    const cls = cPct <= 70 ? 'A' : cPct <= 90 ? 'B' : 'C';
+    return { rank: i+1, name, val, pct, cPct, cls };
+  });
+}
+
+function renderABC(type) {
+  const st = ABCState[type];
+  const isFat = st.mode === 'fat';
+  const colKey = type === 'p' ? CFG.colProd : CFG.colCli;
+  const colVal = isFat ? CFG.colFat : CFG.colQtd;
+  const lbl = type === 'p' ? 'Curva ABC — Produtos' : 'Curva ABC — Clientes';
+  const rows = getCrossFiltered();
+
+  if (!colKey || !colVal) {
+    document.getElementById(`abc-${type}-body`).innerHTML = `<tr><td colspan="5" style="color:var(--tx3);text-align:center;padding:20px">Configure as colunas em ⚙ Config</td></tr>`;
+    document.getElementById(`abc-${type}-title`).textContent = lbl;
+    return;
+  }
+
+  st.data = calcABC(rows, colKey, colVal);
+  const total = st.data.length;
+  const pages = Math.max(1, Math.ceil(total / ABC_PAGE));
+  st.page = Math.min(st.page, pages - 1);
+  const start = st.page * ABC_PAGE;
+  const pageData = st.data.slice(start, start + ABC_PAGE);
+  const maxPct = st.data[0]?.pct || 1;
+
+  document.getElementById(`abc-${type}-title`).textContent = lbl;
+
+  const valFmt = isFat ? (v => BRL.format(v)) : (v => NUM.format(v));
+  const thVal = isFat ? 'Faturamento' : 'Quantidade';
+
+  document.querySelector(`#abc-${type}-body`).closest('table').querySelector('thead tr').innerHTML =
+    `<th>#</th><th>${type==='p'?'Produto':'Cliente'}</th><th class="r">${thVal}</th><th>% Total</th><th>Classe</th>`;
+
+  const colorMap = { A: '#d2fa02', B: '#a8d400', C: '#7aab00' };
+  const cfType = type === 'p' ? 'prod' : 'cli';
+  const tbody = document.getElementById(`abc-${type}-body`);
+  tbody.innerHTML = pageData.map(item => {
+    const isActive = CROSS_FILTER.type === cfType && CROSS_FILTER.value === item.name;
+    const safeName = item.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    return `<tr class="nm-click${isActive?' cf-active':''}" data-cf-type="${cfType}" data-cf-val="${safeName}">
+      <td class="rnk">${item.rank}</td>
+      <td class="nm" title="${item.name}">${item.name}</td>
+      <td class="num">${valFmt(item.val)}</td>
+      <td class="pctcol">
+        <div class="pct-cell">
+          <span class="pct-num">${item.pct.toFixed(1)}%</span>
+          <div class="pct-track"><div class="pct-fg" style="width:${(item.pct/maxPct*100).toFixed(1)}%;background:${colorMap[item.cls]}"></div></div>
+        </div>
+      </td>
+      <td><span class="badge b${item.cls.toLowerCase()}">${item.cls}</span></td>
+    </tr>`;
+  }).join('');
+  tbody.onclick = e => {
+    const tr = e.target.closest('tr[data-cf-type]');
+    if (tr) setCrossFilter(tr.dataset.cfType, tr.dataset.cfVal);
+  };
+
+  document.getElementById(`abc-${type}-info`).textContent = `Página ${st.page+1} de ${pages} · ${total} itens`;
+  document.getElementById(`abc-${type}-prev`).disabled = st.page === 0;
+  document.getElementById(`abc-${type}-next`).disabled = st.page >= pages - 1;
+  const grandTotal = st.data.reduce((s, d) => s + d.val, 0);
+  document.getElementById(`abc-${type}-total`).textContent = isFat ? BRL.format(grandTotal) : NUM.format(grandTotal);
+}
+
+function setAbcMode(type, mode) {
+  ABCState[type].mode = mode;
+  ABCState[type].page = 0;
+  document.getElementById(`tgl-${type}-fat`).className = 'tgl' + (mode==='fat'?' on':'');
+  document.getElementById(`tgl-${type}-qtd`).className = 'tgl' + (mode==='qtd'?' on':'');
+  renderABC(type);
+}
+function abcPage(type, dir) {
+  const st = ABCState[type];
+  const pages = Math.ceil(st.data.length / ABC_PAGE);
+  st.page = Math.max(0, Math.min(st.page + dir, pages - 1));
+  renderABC(type);
+}
+
+// ═══════════════════════════════════════════════
+// BOTTOM METRICS
+// ═══════════════════════════════════════════════
+function renderBottom() {
+  const rows = getCrossFiltered();
+
+  // Frete (filtrado por período)
+  const frete = sumCol(rows, CFG.colFrete);
+  const fat   = sumCol(rows, CFG.colFat);
+  document.getElementById('m-frete').textContent = BRL.format(frete);
+  document.getElementById('m-frete-pct').textContent = fat > 0 ? (frete/fat*100).toFixed(1) + '% da receita' : '—';
+
+  // A Receber: col E onde col N ≠ "PAGO" — sem filtro de período, mas respeita cross-filter
+  const statusCI = getCI(CFG.colStatus);
+  const fatCI    = getCI(CFG.colFat);
+  const recBase  = CROSS_FILTER.value ? applyCrossFilter(RAW.rows) : RAW.rows;
+  const rec = recBase.reduce((s, r) => {
+    const status = String(r[statusCI] ?? '').trim().toUpperCase();
+    if (status === 'PAGO') return s;
+    const v = parseNum(r[fatCI]);
+    return s + (isNaN(v) ? 0 : v);
+  }, 0);
+  document.getElementById('m-rec').textContent = BRL.format(rec);
+  document.getElementById('m-rec-sub').textContent = 'Em aberto (todos os períodos)';
+}
+
+async function fetchDollar() {
+  try {
+    const r = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL');
+    const d = await r.json();
+    const info = d.USDBRL;
+    const bid = parseFloat(info.bid);
+    const chg = parseFloat(info.pctChange);
+    document.getElementById('m-dolar').textContent = bid.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const sub = document.getElementById('m-dolar-var');
+    sub.textContent = (chg >= 0 ? '▲ +' : '▼ ') + chg.toFixed(2) + '% hoje';
+    sub.className = 'metric-sub ' + (chg >= 0 ? 'up' : 'dn');
+  } catch {
+    document.getElementById('m-dolar-var').textContent = 'Indisponível';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════
+function renderAll() {
+  updateCFBar();
+  renderKPIs();
+  renderABC('p');
+  renderABC('c');
+  renderBottom();
+  document.getElementById('tb-refresh').textContent = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ═══════════════════════════════════════════════
+// RELOAD
+// ═══════════════════════════════════════════════
+async function reload() {
+  if (!getTok()) { logout(); return; }
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('dash').style.display = 'none';
+  try {
+    const values = await fetchAllSheets();
+    if (!processRaw(values)) throw new Error('Nenhum dado encontrado na planilha.');
+    applyFixedCols();
+    autoAdjustPeriod();
+    renderAll();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+  } catch (e) {
+    if (e?.status === 401) { logout(); return; }
+    document.getElementById('loading').innerHTML = `<p style="color:var(--danger);font-size:12px">Erro: ${e.message||e.status||'desconhecido'}<br><button class="btn btn-flat btn-sm" style="margin-top:12px" onclick="reload()">Tentar novamente</button></p>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════
+(async function boot() {
+  const tok = checkCB() || getTok();
+  if (!tok) {
+    const id = getCID();
+    if (id) document.getElementById('cid').value = id;
+    document.getElementById('auth').style.display = 'flex';
+    return;
+  }
+  document.getElementById('auth').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  initPeriod();
+  fetchDollar();
+  await reload();
+})();
+</script>
+</body>
+</html>
